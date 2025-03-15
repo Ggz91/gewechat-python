@@ -4,24 +4,9 @@ import requests
 #import base64
 #from PIL import Image
 from flask import Flask, request, jsonify
-from request_handler import RequestHandler
+from request_handler.RequestHandler import *
 
 host_server = Flask(__name__)
-
-@host_server.route('/', methods=['GET', 'POST'])
-def handle_request():
-    # 处理 GET 请求
-    if request.method == 'GET':
-        # 获取 GET 请求的查询参数（如 /api?name=John）
-        name = request.args.get('name', 'Unknown')
-        return jsonify({"message": f"GET 请求成功，参数 name={name}"})
-
-    # 处理 POST 请求
-    elif request.method == 'POST':
-        # 获取 POST 请求的 JSON 数据
-        data = request.get_json()
-        print("Received data:", data["Data"]["Content"]["string"])
-        return jsonify({"message": "POST 请求成功", "received_data": data})
 
 def init_server(gewechat_client):
     print("=============开始初始化Server===================")
@@ -29,6 +14,29 @@ def init_server(gewechat_client):
         print("gewechat未初始化")
         return
     
+    g_gewechat_client = gewechat_client
+
+    @host_server.route('/', methods=['GET', 'POST'])
+    def handle_request():
+        print("enter handler_request")
+        
+        if gewechat_client is None:
+            print("gewechat未初始化")
+            return "Handle request"
+
+        print("enter handler_request", request.method)
+
+        request_handler = None
+        # 处理 GET 请求
+        if request.method == 'GET':
+            request_handler = GetRequestHandler(request=request, client=gewechat_client)
+
+        # 处理 POST 请求
+        elif request.method == 'POST':
+            # 获取 POST 请求的 JSON 数据
+            request_handler = PostRequestHandler(request=request, client=gewechat_client)
+        return request_handler.process()
+
     host_server.run(host='0.0.0.0', port=8888, debug=True)
 
 def login(gewechat_client, token, app_id):
@@ -75,6 +83,8 @@ def init_gewechat():
 
     # 创建 GewechatClient 实例
     client = GewechatClient(base_url, token)
+    if client is None:
+        print("client is none")
     return client, token, app_id
     
 def main():

@@ -4,6 +4,7 @@ import requests
 #import base64
 #from PIL import Image
 from flask import Flask, request, jsonify
+from request_handler import RequestHandler
 
 host_server = Flask(__name__)
 

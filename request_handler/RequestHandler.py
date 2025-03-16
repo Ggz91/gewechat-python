@@ -1,3 +1,4 @@
+from ai.AiClient import *
 
 g_admins = ["GgZ529038378"]
 g_groups = ["49715495297@chatroom"]
@@ -68,15 +69,31 @@ class AIRequestHandler(PostRequestHandler):
         pass
 
     def process(self):
+        print("AI ask")
          # 解析数据
         data = self._request.get_json()
         self._FromUserName = data["Data"]["FromUserName"]["string"]
         self._Content = data["Data"]["Content"]["string"]
+        is_avilable_group_msg = False
+        if self._FromUserName in g_groups:
+            is_avilable_group_msg = True
+        if is_avilable_group_msg:
+            self._Content = self._Content.split(":", 1)[1].strip()
+        self._Content = self._Content.replace(g_ai_prefix, "", 1).strip()
+        ai_client = AiClient()
+        sucess,answer = ai_client.ask(self._Content)
+        if sucess:
+            self._client.post_text(g_app_id, self._FromUserName, answer)
         return super().process()
 
 class PostRequestHandler(RequestHandler):
     def __init__(self, request, client):
         super().__init__(request, client)
+        self._MsgType = None
+        self._FromUserName = None
+        self._ToUserName = None
+        self._Content = None
+        self._PushContent = None
         pass
 
     def process(self):
@@ -84,18 +101,21 @@ class PostRequestHandler(RequestHandler):
         print("process PostRequestHandler")
         # 解析数据
         data = self._request.get_json()
-        if data["Data"].get("MsgType") is None:
+        if data.get("Data") is None or data["Data"].get("MsgType") is None:
             # 暂时只支持文本消息
+            print("No Data")
             return "Handle Request"
         self._MsgType =  data["Data"]["MsgType"]
         if self._MsgType != 1:
             # 暂时只支持文本消息
+            print("MsgType :" + str(self._MsgType))
             return "Handle Request"
         self._FromUserName = data["Data"]["FromUserName"]["string"]
         self._ToUserName = data["Data"]["ToUserName"]
         self._Content = data["Data"]["Content"]["string"]
-        self._PushContent = data["Data"]["PushContent"]
-
+        # 好像只有好友才有PushContent
+        if data["Data"].get("PushContent") is not None:
+            self._PushContent = data["Data"]["PushContent"]
         # 消息分类
         is_admin = False
         if self._FromUserName in g_admins:
@@ -106,7 +126,13 @@ class PostRequestHandler(RequestHandler):
         is_ai = False
         if self._Content.startswith(g_ai_prefix):
             is_ai = True
+        else:
+            content = self._Content.split(":")[1].strip()
+            print("content: " + str(content))
+            if content.startswith(g_ai_prefix):
+                is_ai = True
         if g_test:
+            print("Data :", str(data))
             print("FromUserName: " + str(self._FromUserName))
             print("is_admin: " + str(is_admin))
             print("is_avilable_group_msg: " + str(is_avilable_group_msg))
@@ -121,24 +147,24 @@ class PostRequestHandler(RequestHandler):
 
         if is_ai:
             real_handler = AIRequestHandler(self._request, self._client)
-        
-        if is_admin:
-            # 群发消息
-            if self._Content.startswith(g_admin_broadcast_prefix):
-                real_handler = AdminBroadcastToGroupRequestHandler(self._request, self._client)
-            else:
-                real_handler = AdminRequestHandler(self._request, self._client)
-            pass
-        
-        if is_avilable_group_msg:
-            # 过滤
-            user = self._PushContent.split(" : ")[0]
-            if g_test:
-                print("group user: " + str(user))
-            if user in g_listen_users:
-                real_handler = ForwardToGroupRequestHandler(self._request, self._client)
-            else:
+        else:
+            if is_admin:
+                # 群发消息
+                if self._Content.startswith(g_admin_broadcast_prefix):
+                    real_handler = AdminBroadcastToGroupRequestHandler(self._request, self._client)
+                else:
+                    real_handler = AdminRequestHandler(self._request, self._client)
                 pass
+            
+            if is_avilable_group_msg and self._PushContent is not None:
+                # 过滤
+                user = self._PushContent.split(" : ")[0]
+                if g_test:
+                    print("group user: " + str(user))
+                if user in g_listen_users:
+                    real_handler = ForwardToGroupRequestHandler(self._request, self._client)
+                else:
+                    pass
 
         if real_handler is None:
             print("handler is none")

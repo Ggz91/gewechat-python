@@ -62,8 +62,9 @@ def init_gewechat():
     base_url = os.environ.get("BASE_URL", "http://localhost:2531/v2/api")
     token = os.environ.get("GEWECHAT_TOKE", "")
     app_id = os.environ.get("APP_ID", "wx_u4c2FuUaLD3L_WuyGxJ2N")
-    
-    if token is None or token == "":
+    print("token : ", token)
+    #if True '''token is None or token == ""''':
+    if True:
         print("没有配置 GEWECHAT_TOKE")
     
         url = f"{base_url}/tools/getTokenId"
@@ -73,6 +74,8 @@ def init_gewechat():
             data = reponse.json()
             if data["ret"] == 200:
                 token = data["data"]
+                os.environ["GEWECHAT_TOKE"]= token
+                print("init token", token)
                 print("Token获取成功")
             else:
                 print(f"Token获取失败: {data.get('msg', 'unknow')}")

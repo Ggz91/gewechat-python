@@ -1,7 +1,7 @@
 from ai.AiClient import *
 
 g_admins = ["GgZ529038378"]
-g_groups = ["49715495297@chatroom"]
+g_groups = ["49715495297@chatroom", "44648936251@chatroom"]
 g_listen_groups = ["49650497008@chatroom"]
 g_listen_users = ["hillfree攀登"]
 g_app_id = "wx_u4c2FuUaLD3L_WuyGxJ2N"

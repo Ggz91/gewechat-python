@@ -18,10 +18,12 @@ def init_server(gewechat_client):
 
     @host_server.route('/', methods=['GET', 'POST'])
     def handle_request():
+        print("=============================================================")
         print("enter handler_request")
         
         if gewechat_client is None:
             print("gewechat未初始化")
+            print("=============================================================")
             return "Handle request"
 
         print("enter handler_request", request.method)
@@ -35,7 +37,9 @@ def init_server(gewechat_client):
         elif request.method == 'POST':
             # 获取 POST 请求的 JSON 数据
             request_handler = PostRequestHandler(request=request, client=gewechat_client)
-        return request_handler.process()
+        res = request_handler.process()
+        print("=============================================================")
+        return res
 
     host_server.run(host='0.0.0.0', port=8888, debug=True)
 

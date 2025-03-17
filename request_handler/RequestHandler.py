@@ -3,7 +3,7 @@ from ai.AiClient import *
 g_admins = ["GgZ529038378"]
 g_groups = ["49715495297@chatroom", "44648936251@chatroom"]
 g_listen_groups = ["49650497008@chatroom"]
-g_listen_users = ["hillfree攀登"]
+g_listen_users = ["wxid_kwiwriatxphi21"]
 g_app_id = "wx_u4c2FuUaLD3L_WuyGxJ2N"
 g_admin_broadcast_prefix = "ToGroups:"
 g_ai_prefix = "@Bot"
@@ -58,9 +58,10 @@ class ForwardToGroupRequestHandler(PostRequestHandler):
     def process(self):
         # 解析数据
         data = self._request.get_json()
-        self._PushContent = data["Data"]["PushContent"]
+        self._Content = data["Data"]["Content"]["string"]
+        self._Content = self._Content.split(":", 1)[1].strip()
         for group in g_groups:
-            self._client.post_text(g_app_id, group, self._PushContent)
+            self._client.post_text(g_app_id, group, "From 欧阳:" + self._Content)
         return super().process()
 
 class AIRequestHandler(PostRequestHandler):
@@ -156,12 +157,13 @@ class PostRequestHandler(RequestHandler):
                     real_handler = AdminRequestHandler(self._request, self._client)
                 pass
             
-            if is_avilable_group_msg and self._PushContent is not None:
+            if is_avilable_group_msg:
                 # 过滤
-                user = self._PushContent.split(" : ")[0]
+                user = self._Content.split(":")[0].strip()
                 if g_test:
                     print("group user: " + str(user))
                 if user in g_listen_users:
+                    print("is listen user")
                     real_handler = ForwardToGroupRequestHandler(self._request, self._client)
                 else:
                     pass

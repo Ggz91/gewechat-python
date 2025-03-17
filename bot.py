@@ -5,7 +5,9 @@ import requests
 #from PIL import Image
 from flask import Flask, request, jsonify, render_template
 from request_handler.RequestHandler import *
+from server import server
 
+'''
 host_server = Flask(__name__)
 
 def init_server(gewechat_client):
@@ -19,10 +21,6 @@ def init_server(gewechat_client):
     @host_server.route('/data')
     def get_data():
         return jsonify({"values": [10, 20, 30, 40]})
-
-    @host_server.route('/index')
-    def index():
-        return render_template("index.html")
 
     @host_server.route('/', methods=['GET', 'POST'])
     def handle_request():
@@ -47,9 +45,14 @@ def init_server(gewechat_client):
             request_handler = PostRequestHandler(request=request, client=gewechat_client)
         res = request_handler.process()
         print("=============================================================\n")
-        return res
+        return render_template("index.html")
 
     host_server.run(host='0.0.0.0', port=8888, debug=True)
+'''
+
+def init_server(gewechat_client):
+    ser = server.Server()
+    ser.run(gewechat_client)
 
 def login(gewechat_client, token, app_id):
     print("=============开始登录===================")

@@ -3,7 +3,7 @@ import os
 import requests
 #import base64
 #from PIL import Image
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from request_handler.RequestHandler import *
 
 host_server = Flask(__name__)
@@ -16,9 +16,17 @@ def init_server(gewechat_client):
     
     g_gewechat_client = gewechat_client
 
+    @host_server.route('/data')
+    def get_data():
+        return jsonify({"values": [10, 20, 30, 40]})
+
+    @host_server.route('/index')
+    def index():
+        return render_template("index.html")
+
     @host_server.route('/', methods=['GET', 'POST'])
     def handle_request():
-        print("=============================================================")
+        print("\n=============================================================")
         print("enter handler_request")
         
         if gewechat_client is None:
@@ -38,7 +46,7 @@ def init_server(gewechat_client):
             # 获取 POST 请求的 JSON 数据
             request_handler = PostRequestHandler(request=request, client=gewechat_client)
         res = request_handler.process()
-        print("=============================================================")
+        print("=============================================================\n")
         return res
 
     host_server.run(host='0.0.0.0', port=8888, debug=True)

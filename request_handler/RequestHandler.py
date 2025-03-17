@@ -116,6 +116,9 @@ class PostRequestHandler(RequestHandler):
             # 暂时只支持文本消息 和 图片消息
             print("No Data")
             return "Handle Request"
+        if g_test:
+            print("Data :", str(data))
+            
         self._MsgType =  data["Data"]["MsgType"]
         if self._MsgType != 1 and self._MsgType != 3:
             # 暂时只支持文本消息 和 图片消息
@@ -139,12 +142,15 @@ class PostRequestHandler(RequestHandler):
         if self._Content.startswith(g_ai_prefix):
             is_ai = True
         elif not self._IsPicMsg:
-            content = self._Content.split(":")[1].strip()
+            if is_avilable_group_msg:
+                content = self._Content.split(":")[1].strip()
+            else:
+                content = self._Content
             print("content: " + str(content))
             if content.startswith(g_ai_prefix):
                 is_ai = True
         if g_test:
-            print("Data :", str(data))
+            #print("Data :", str(data))
             print("FromUserName: " + str(self._FromUserName))
             print("is_admin: " + str(is_admin))
             print("is_avilable_group_msg: " + str(is_avilable_group_msg))

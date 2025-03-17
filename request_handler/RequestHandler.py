@@ -46,8 +46,12 @@ class AdminBroadcastToGroupRequestHandler(PostRequestHandler):
         # 解析数据
         data = self._request.get_json()
         self._Content = data["Data"]["Content"]["string"]
+        is_pic_msg = self._MsgType =  data["Data"]["MsgType"] == 3
         for group in g_groups:
-            self._client.post_text(g_app_id, group, self._Content)
+            if is_pic_msg:
+                self._client.forward_image(g_app_id, group, self._Content)
+            else:
+                self._client.post_text(g_app_id, group, self._Content)
         return super().process()
 
 class ForwardToGroupRequestHandler(PostRequestHandler):
@@ -59,9 +63,14 @@ class ForwardToGroupRequestHandler(PostRequestHandler):
         # 解析数据
         data = self._request.get_json()
         self._Content = data["Data"]["Content"]["string"]
-        self._Content = self._Content.split(":", 1)[1].strip()
-        for group in g_groups:
-            self._client.post_text(g_app_id, group, "From 欧阳:" + self._Content)
+        is_pic_msg = self._MsgType =  data["Data"]["MsgType"] == 3
+        if not is_pic_msg:
+            self._Content = self._Content.split(":", 1)[1].strip()
+            for group in g_groups:
+                self._client.post_text(g_app_id, group, "From 欧阳:" + self._Content)
+        elif is_pic_msg:
+            for group in g_groups:
+                self._client.forward_image(g_app_id, group, self._Content)
         return super().process()
 
 class AIRequestHandler(PostRequestHandler):
@@ -95,6 +104,7 @@ class PostRequestHandler(RequestHandler):
         self._ToUserName = None
         self._Content = None
         self._PushContent = None
+        self._IsPicMsg = False
         pass
 
     def process(self):
@@ -103,17 +113,18 @@ class PostRequestHandler(RequestHandler):
         # 解析数据
         data = self._request.get_json()
         if data.get("Data") is None or data["Data"].get("MsgType") is None:
-            # 暂时只支持文本消息
+            # 暂时只支持文本消息 和 图片消息
             print("No Data")
             return "Handle Request"
         self._MsgType =  data["Data"]["MsgType"]
-        if self._MsgType != 1:
-            # 暂时只支持文本消息
+        if self._MsgType != 1 and self._MsgType != 3:
+            # 暂时只支持文本消息 和 图片消息
             print("MsgType :" + str(self._MsgType))
             return "Handle Request"
         self._FromUserName = data["Data"]["FromUserName"]["string"]
         self._ToUserName = data["Data"]["ToUserName"]
         self._Content = data["Data"]["Content"]["string"]
+        self._IsPicMsg = self._MsgType == 3
         # 好像只有好友才有PushContent
         if data["Data"].get("PushContent") is not None:
             self._PushContent = data["Data"]["PushContent"]
@@ -127,7 +138,7 @@ class PostRequestHandler(RequestHandler):
         is_ai = False
         if self._Content.startswith(g_ai_prefix):
             is_ai = True
-        else:
+        elif not self._IsPicMsg:
             content = self._Content.split(":")[1].strip()
             print("content: " + str(content))
             if content.startswith(g_ai_prefix):
@@ -151,12 +162,14 @@ class PostRequestHandler(RequestHandler):
         else:
             if is_admin:
                 # 群发消息
+                real_handler = AdminBroadcastToGroupRequestHandler(self._request, self._client)
+                '''
                 if self._Content.startswith(g_admin_broadcast_prefix):
                     real_handler = AdminBroadcastToGroupRequestHandler(self._request, self._client)
                 else:
                     real_handler = AdminRequestHandler(self._request, self._client)
                 pass
-            
+                '''
             if is_avilable_group_msg:
                 # 过滤
                 user = self._Content.split(":")[0].strip()
@@ -167,7 +180,7 @@ class PostRequestHandler(RequestHandler):
                     real_handler = ForwardToGroupRequestHandler(self._request, self._client)
                 else:
                     pass
-
+            
         if real_handler is None:
             print("handler is none")
             return "Handle Request"

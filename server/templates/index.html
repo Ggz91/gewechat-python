@@ -1,5 +1,6 @@
 <canvas id="myChart"></canvas>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script>
     fetch("/data")
         .then(response => response.json())
@@ -10,8 +11,28 @@
                     labels: [1, 2, 3, 4],
                     datasets: [{ 
                         label: "上证指数",
-                        data: data.values
+                        data: data.values,
+                        datalabels: {
+                            labels: {
+                                0: {content: '起点', color: 'red'},
+                                2: {content: '终点', color: 'red'}
+                            }
+                        }
                     }]
+                },
+                options: {
+                    plugins: {
+                    // 启用数据标签插件
+                    datalabels: {
+                        align: 'top',      // 文字位置（top/bottom/left/right）
+                        anchor: 'center',  // 锚点位置
+                        formatter: (value, context) => {
+                        // 动态返回标注内容
+                        return context.dataset.datalabels.labels[context.dataIndex]?.content || '';
+                        },
+                        font: { size: 12 } // 字体大小
+                    }
+                    }
                 }
             });
         });

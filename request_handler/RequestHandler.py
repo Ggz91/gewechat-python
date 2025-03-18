@@ -81,12 +81,12 @@ class ForwardToGroupRequestHandler(PostRequestHandler):
                     mmcn = sysmsg.find('mmchatroombarannouncememt')
                     content = mmcn.find('content').text.strip()
                     for group in g_groups:
-                        self._client.post_text(g_app_id, group, "From 欧阳:" + content)
+                        self._client.post_text(g_app_id, group, "From 欧阳:\n" + content)
             pass
         else:
             self._Content = self._Content.split(":", 1)[1].strip()
             for group in g_groups:
-                self._client.post_text(g_app_id, group, "From 欧阳:" + self._Content)
+                self._client.post_text(g_app_id, group, "From 欧阳:\n" + self._Content)
         
         return super().process()
 
@@ -101,10 +101,10 @@ class AIRequestHandler(PostRequestHandler):
         data = self._request.get_json()
         self._FromUserName = data["Data"]["FromUserName"]["string"]
         self._Content = data["Data"]["Content"]["string"]
-        is_avilable_group_msg = False
+        is_listen_group_message = False
         if self._FromUserName in g_groups:
-            is_avilable_group_msg = True
-        if is_avilable_group_msg:
+            is_listen_group_message = True
+        if is_listen_group_message:
             self._Content = self._Content.split(":", 1)[1].strip()
         self._Content = self._Content.replace(g_ai_prefix, "", 1).strip()
         ai_client = AiClient()
@@ -155,14 +155,19 @@ class PostRequestHandler(RequestHandler):
         is_admin = False
         if self._FromUserName in g_admins:
             is_admin = True
-        is_avilable_group_msg = False
+        is_listen_group_message = False
         if self._FromUserName in g_listen_groups:
-            is_avilable_group_msg = True
+            is_listen_group_message = True
+        
+        is_server_group_message = False
+        if self._FromUserName in g_groups:
+            is_server_group_message = True
+
         is_ai = False
         if self._Content.startswith(g_ai_prefix):
             is_ai = True
         elif not self._IsPicMsg:
-            if is_avilable_group_msg:
+            if is_listen_group_message or is_server_group_message:
                 content = self._Content.split(":")[1].strip()
             else:
                 content = self._Content
@@ -173,7 +178,7 @@ class PostRequestHandler(RequestHandler):
             #print("Data :", str(data))
             print("FromUserName: " + str(self._FromUserName))
             print("is_admin: " + str(is_admin))
-            print("is_avilable_group_msg: " + str(is_avilable_group_msg))
+            print("is_listen_group_message: " + str(is_listen_group_message))
             print("self._Content: " + str(self._Content))
             print("is_ai: " + str(is_ai))
 
@@ -196,7 +201,7 @@ class PostRequestHandler(RequestHandler):
                     real_handler = AdminRequestHandler(self._request, self._client)
                 pass
                 '''
-            if is_avilable_group_msg:
+            if is_listen_group_message:
                 # 过滤
                 user = self._Content.split(":")[0].strip()
                 if g_test:

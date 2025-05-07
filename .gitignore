@@ -5,3 +5,5 @@ output.txt
 reference-code
 ai/
 output.log
+MyVenv/
+nohup.out

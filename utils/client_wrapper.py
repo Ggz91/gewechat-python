@@ -1,5 +1,5 @@
-from gewechat_client import GewechatClient
-from wecom_client import WeComClient
+from ..gewechat_client.client import GewechatClient
+from ..wecom_client import WeComClient
 
 class ClientWrapper:
     def __init__(self, client : GewechatClient):

@@ -10,11 +10,12 @@ class WeComClient:
         '''
             从环境变量中获取
         '''
-        self.url = os.environ.get("WECOM_URL")
+        self.url = os.getenv("WECOM_URL")
 
     def post_text(self, content):
         if self.url is None:
             print("url is None")
+            return
         
         payload = {
         "msgtype": "markdown",

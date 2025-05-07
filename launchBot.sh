@@ -1,1 +1,1 @@
-nohup python bot.py > output.log 2>&1 &
+nohup python bot.py > /dev/null 2>&1 & #> output.log 2>&1 &

@@ -1,4 +1,10 @@
-from gewechat_client import GewechatClient
+use_wecom = True
+
+if not use_wecom:
+    from gewechat_client import GewechatClient
+else:
+    from wecom_client import WeComClient
+
 import os
 import requests
 #import base64
@@ -6,6 +12,8 @@ import requests
 from flask import Flask, request, jsonify, render_template
 from request_handler.RequestHandler import *
 from server import server
+
+from utils.client_wrapper import *
 
 '''
 host_server = Flask(__name__)
@@ -64,7 +72,7 @@ def login(gewechat_client, token, app_id):
 
     # 设置回调地址
     try:
-        reponse = gewechat_client.set_callback(token=token, callback_url="http://101.43.97.96:8888/")
+        reponse = gewechat_client.set_callback(token=token, callback_url="http://1.15.32.24:6666/")
     except Exception as e:
         print(f"设置回调地址失败:{e}")
         return 
@@ -76,10 +84,10 @@ def init_gewechat():
     # 配置参数
     base_url = os.environ.get("BASE_URL", "http://localhost:2531/v2/api")
     token = os.environ.get("GEWECHAT_TOKE", "")
-    app_id = os.environ.get("APP_ID", "wx_u4c2FuUaLD3L_WuyGxJ2N")
+    app_id = os.environ.get("APP_ID", "")
     print("token : ", token)
-    #if True '''token is None or token == ""''':
-    if True:
+    if token is None or token == "":
+    #if True:
         print("没有配置 GEWECHAT_TOKE")
     
         url = f"{base_url}/tools/getTokenId"
@@ -107,8 +115,12 @@ def init_gewechat():
     
 def main():
     print("=============开始初始化===================")
-    gewechat_client, token, app_id = init_gewechat()
-    init_server(gewechat_client= gewechat_client)
+    if not use_wecom:
+        gewechat_client, token, app_id = init_gewechat()
+        init_server(gewechat_client= gewechat_client)
+    else:
+        wecom_client = WeComClient()
+        init_server(gewechat_client=wecom_client)
     #login(gewechat_client, token, app_id)
 
 if __name__ == "__main__":

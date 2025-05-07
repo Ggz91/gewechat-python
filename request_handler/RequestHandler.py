@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 g_admins = ["GgZ529038378"]
 g_groups = ["49715495297@chatroom", "44648936251@chatroom"]
 g_listen_groups = ["49650497008@chatroom"]
-g_listen_users = ["wxid_kwiwriatxphi21"]
+g_listen_users = ["wxid_kwiwriatxphi21", "wxid_zxmdgghaiahi22"]
 g_app_id = "wx_u4c2FuUaLD3L_WuyGxJ2N"
 g_admin_broadcast_prefix = "ToGroups:"
 g_ai_prefix = "@Bot"

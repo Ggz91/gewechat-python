@@ -49,5 +49,5 @@ class Server():
             print("=============================================================\n")
             return render_template("index.html")
         
-        host_server.run(host='0.0.0.0', port=8888, debug=True)
+        host_server.run(host='0.0.0.0', port=6666, debug=True)
 
